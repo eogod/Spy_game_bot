@@ -43,8 +43,7 @@ class Player:
         self.points = 0
         self.username = ''
         self.role = ''
-        self.command_id = ''
-        self.answer = ''
+        self.answers: list[str] = ''
 
     def set_answer(self, answer):
         self.answer = answer

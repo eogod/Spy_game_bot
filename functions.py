@@ -1,11 +1,10 @@
 import random
 from data import Team, Task
-from bot import Persons, Teams, rounds
+from bot import Persons, Teams, rounds, ready_counter
 from time import sleep
 from threading import Thread
 
 
-#
 
 def get_teams():
     count = len(Persons)
@@ -51,6 +50,7 @@ def spawn_treath_with_sleep():
 
 def start_game():
     th = Thread(target=spawn_treath_with_sleep)
+    th.start()
 
 
 def del_user_from_lobby(tg_id: int):
@@ -59,6 +59,27 @@ def del_user_from_lobby(tg_id: int):
             Persons.remove(player)
             break
 
+def test_ready_counters():
+    for (i,team) in zip(ready_counter,Teams):
+        if i == len(team.players):
+            return [player.name for player in team]
+
+
+def set_answer_pers(tg_id: int, answer: str):
+    for team in Teams:
+        for pers in team.players:
+            if tg_id == pers.tg_id:
+                pers.answers.append(answer)
+
+
+def plus_one(tg_id: int):
+    ready_counter = [0 for _ in range(len(Teams))]
+    for team in Teams:
+        for pers in team.players:
+            if tg_id == pers.tg_id:
+                ready_counter[team.id-1]+=1
+    test_ready_counters()
+            
 
 def take_count_answer() -> list[bool]:
     ready_counter = []

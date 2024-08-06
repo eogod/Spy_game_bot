@@ -3,7 +3,7 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from data import *
 from config import load_config
 from data import Player
-import time
+
 
 f = 0
 
@@ -11,7 +11,7 @@ Persons: list[Player] = []
 Persons_welcom: list[Player] = []
 Teams: list[Team] = []
 rounds: int = 0
-
+ready_counter: list[int] = []
 
 bot = AsyncTeleBot(load_config())
 
