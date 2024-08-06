@@ -1,7 +1,10 @@
 from telebot.async_telebot import AsyncTeleBot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from data import *
+import asyncio
 from config import load_config
+from data_exs import a
+import re
 from data import Player
 
 Persons: list[Player] = []

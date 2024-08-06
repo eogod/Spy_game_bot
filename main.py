@@ -1,7 +1,6 @@
 from bot import *
 import logging
 from data import *
-import asyncio
 
 class Command:
     help = 'Run bot locally.'
