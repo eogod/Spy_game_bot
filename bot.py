@@ -1,19 +1,20 @@
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-
+from data import *
 from config import load_config
 from data_exs import a
+import re
+from data import Player
 
 bot = telebot.TeleBot(load_config())
-
-
+Persons = []
 
 # Define a command handler
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
     button_join = InlineKeyboardMarkup(row_width=1)
     button_join.add(InlineKeyboardButton(text='Присоединиться', callback_data='join'))
-    bot.send_message(message.from_user.id, "Готов испыать себя?", reply_markup=button_join)
+    bot.send_message(message.from_user.id, "Готов испытать себя?", reply_markup=button_join)
 
 
 
@@ -30,6 +31,13 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 def answer(call):
     button_back = InlineKeyboardMarkup(row_width=2)
     button_back.add(InlineKeyboardButton(text="Назад", callback_data='back'))
+    tg_id = call.from_user.id
+    pl = Player()
+    for i, req in enumerate(session.query(User).filter(User.telegram_id == tg_id).all()):
+        pl.name = req.name
+        pl.point = int(req.points)
+        pl.tg_id = tg_id
+        Persons.append(pl)
     if call.data == 'join':
         button_successful_registration = InlineKeyboardMarkup(row_width=2)
         button_successful_registration.add(InlineKeyboardButton(text="Правила", callback_data='rules'),

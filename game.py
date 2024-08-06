@@ -7,7 +7,6 @@ from telebot import types
 
 games = {}
 
-@bot.message_handler(commands=['join'])
 def join_game(message: types.Message):
     user_id = message.from_user.id
     game_id = message.text.split()[1] if len(message.text.split()) > 1 else None
