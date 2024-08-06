@@ -15,12 +15,18 @@ class User(Base):
     points = Column(Integer, nullable=False, default=0)
 
 
-class Player(Base):
-    __tablename__ = 'players'
-    id = Column(Integer, primary_key=True)
-    telegram_id = Column(Integer, unique=True)
-    role = Column(Enum('civilian', 'spy', name='roles'))
-    game_id = Column(Integer)
+class Player:
+    def __init__(self):
+        self.name = ''
+        self.tg_id = 0
+        self.points = 0
+        self.role = ''
+        self.command_id = 0
+    def addPoint(self,num: int):
+        self.point += num
+
+
+
 
 Base.metadata.create_all(engine)
 session = SessionLocal()
@@ -28,6 +34,8 @@ results = session.query(User).filter(
     User.telegram_id == tele_id,
 ).all()
 
+# tg_id = session.query(User.telegram_id).first()
+# print(tg_id)
 for result in results:
     print(f"""
           Telegram_ID: {result.telegram_id}
