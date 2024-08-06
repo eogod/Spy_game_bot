@@ -3,8 +3,9 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from data import *
 from config import load_config
 from data import Player
+import time
 
-f = 1
+f = 0
 
 Persons: list[Player] = []
 Teams: list[Team] = []
@@ -39,7 +40,7 @@ def send_info(message):
 @bot.callback_query_handler(func=lambda call: True)
 async def answer(call):
     if call.data == 'join':
-        if f:
+        if f==1:
             button_join = InlineKeyboardMarkup(row_width=2)
             button_join.add(InlineKeyboardButton(text="Обновить", callback_data='join'),
                             InlineKeyboardButton(text="Назад", callback_data='main'))
@@ -50,7 +51,7 @@ async def answer(call):
             button_join.add(InlineKeyboardButton(text="Твоя карточка", callback_data='team'),
                             InlineKeyboardButton(text="Назад", callback_data='main'))
             await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                        text=f"!", reply_markup=button_join)
+                                        text=f"Команада нашлась!", reply_markup=button_join)
 
     elif call.data == 'main':
         for i in Persons:
@@ -77,21 +78,32 @@ async def answer(call):
 
     elif call.data == 'team':
         button_team = InlineKeyboardMarkup(row_width=2)
-        button_team.add(InlineKeyboardButton(text='Список участников лоби', callback_data='team_lobi'),
-                        InlineKeyboardButton(text="Выбрать шпионов", callback_data='answer1'))
+        button_team.add(InlineKeyboardButton(text='Список участников лоби', callback_data='team_list'),
+                        InlineKeyboardButton(text="Сбор", callback_data='answer1'))
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                     text='team', reply_markup=button_team)
     elif call.data == 'team_list':
         button_team_list = InlineKeyboardMarkup(row_width=2)
         button_team_list.add(InlineKeyboardButton(text='Назад', callback_data='team'))
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                    text='team', reply_markup=button_team_list)
-    elif call.data == "answer2":
-        # взять из базы вопросы и сделать 4 кнопки отправить их
-        button_back = InlineKeyboardMarkup(row_width=2)
-        button_back.add(InlineKeyboardButton(text="Назад", callback_data='start'))
+                                    text='team_list', reply_markup=button_team_list)
+    elif call.data == "answer1":
+        button_back = InlineKeyboardMarkup(row_width=1)
+        button_back.add(InlineKeyboardButton(text="sdf", callback_data='answer2'))
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                    text='answer', reply_markup=button_back)
+                                    text='answer1', reply_markup=button_back)
+    elif call.data == "answer2":
+        button_back = InlineKeyboardMarkup(row_width=1)
+        button_back.add(InlineKeyboardButton(text="sdgsdfgfgh", callback_data='round_res'))
+        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                    text='answer2', reply_markup=button_back)
+
+    elif call.data == "round_res":
+
+        button_back = InlineKeyboardMarkup(row_width=1)
+        button_back.add(InlineKeyboardButton(text="В поиск лоби", callback_data='team'))
+        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                    text='round_res', reply_markup=button_back)
 
 
 def from_bd(message):
