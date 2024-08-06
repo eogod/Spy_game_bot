@@ -15,6 +15,7 @@ class User(Base):
     __tablename__ = "users_from_bot"
     telegram_id = Column(Integer, primary_key=True, index=True, unique=True)
     name = Column(String, unique=True, nullable=False)
+    username = Column(String, nullable=False, unique=True)
     points = Column(Integer, nullable=False, default=0)
 
     def update_points(telegram_id, plus_points):
