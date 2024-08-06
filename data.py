@@ -1,7 +1,9 @@
-from sqlalchemy import create_engine, Column, Integer, String, Enum
+from sqlalchemy import create_engine, Column, Integer, String, Enum, Text
 from sqlalchemy.orm import sessionmaker, declarative_base
 from config import load_database
 import psycopg2
+from random import randint
+import asyncio
 import copy
 
 
@@ -13,6 +15,7 @@ class User(Base):
     __tablename__ = "users_from_bot"
     telegram_id = Column(Integer, primary_key=True, index=True, unique=True)
     name = Column(String, unique=True, nullable=False)
+    username = Column(String, nullable=False, unique=True)
     points = Column(Integer, nullable=False, default=0)
 
     def update_points(telegram_id, plus_points):
@@ -21,6 +24,17 @@ class User(Base):
         user.points = new_points
         session.commit()
 
+
+class Task(Base):
+    __tablename__ = 'tasks'
+    id = Column(Integer, primary_key=True, index=True, nullable=False)
+    normal_task = Column(Text, nullable=False)
+    fake_task = Column(Text, nullable=False)
+    def get_tasks_by_id(task_id):
+        task = session.query(Task).filter(Task.id == task_id).first()
+        return task.normal_task, task.fake_task
+        task_id = 1 ## ну короче рандомно берем из количества всех. Всего тасков 23
+        normal_task, fake_task = get_tasks_by_id(task_id)
 
 class Player:
     def __init__(self):
@@ -47,11 +61,13 @@ class Team:
         self.spies = []
         self.civilians = []
 
-        for player in players:
-            if player.role == 'civilian':
-                self.civilians.append(player)
+    def change_c_s(self):
+        numbers = [randint(0, len(self.players)) for i in range(2)]
+        for i in range(len(self.players)):
+            if i in numbers:
+                self.players[i].set_role('spy')
             else:
-                self.spies.append(player)
+                self.players[i].set_role('civil')
 
     def voiting_results(self):
         '''LOGIKA                                                                                                                                                                                                                                                                                                               Шпион который выиграл раунд = 100

@@ -12,7 +12,7 @@ class Command:
 
     def handle(self, *args, **options):
         self.logger.info('Starting local bot...')
-        bot.polling(none_stop=True)
+        asyncio.run(bot.polling())
 
 
 if __name__ == "__main__":
