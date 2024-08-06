@@ -8,6 +8,7 @@ import time
 f = 0
 
 Persons: list[Player] = []
+Persons_welcom: list[Player] = []
 Teams: list[Team] = []
 rounds: int = 0
 
@@ -53,7 +54,7 @@ async def answer(call):
                                         text=f"Команада нашлась!", reply_markup=button_join)
 
     elif call.data == 'main':
-        for i in Persons:
+        for i in Persons_welcom:
             if i.tg_id == call.from_user.id:
                 button_successful_registration = InlineKeyboardMarkup(row_width=2)
                 button_successful_registration.add(InlineKeyboardButton(text="Правила", callback_data='rules'),
@@ -113,4 +114,5 @@ def from_bd(id):
         pl.points = int(req.points)
         pl.tg_id = int(tg_id)
         pl.username = req.username
+        Persons_welcom.append(pl)
     return pl
