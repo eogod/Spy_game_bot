@@ -9,12 +9,10 @@ f = 0
 
 Persons: list[Player] = []
 Teams: list[Team] = []
-game_counter = 0
-ready_counter: list[int] = []
-bot = AsyncTeleBot(load_config())
+rounds: int = 0
+
 
 bot = AsyncTeleBot(load_config())
-
 
 # Define a command handler
 @bot.message_handler(commands=['start', 'help'])
@@ -23,7 +21,7 @@ async def send_welcome(message):
     button_successful_registration.add(InlineKeyboardButton(text="Правила", callback_data='rules'),
                                        InlineKeyboardButton(text='Рейтинг', callback_data='rating'),
                                        InlineKeyboardButton(text='Присоедиться к лоби', callback_data='join'))
-    pl = from_bd(message)
+    pl = from_bd(message.from_user.id)
     try:
         await  bot.send_message(message.from_user.id,
                                 text=f"🖖 Здравствуй, {pl.name}\n\n⚜️ Количество баллов: {pl.points}",
@@ -40,6 +38,7 @@ def send_info(message):
 @bot.callback_query_handler(func=lambda call: True)
 async def answer(call):
     if call.data == 'join':
+        Persons.append(from_bd(call.from_user.id))
         if f==1:
             button_join = InlineKeyboardMarkup(row_width=2)
             button_join.add(InlineKeyboardButton(text="Обновить", callback_data='join'),
@@ -106,12 +105,12 @@ async def answer(call):
                                     text='round_res', reply_markup=button_back)
 
 
-def from_bd(message):
-    tg_id = message.from_user.id
+def from_bd(id):
+    tg_id = id
     pl = Player()
     for i, req in enumerate(session.query(User).filter(User.telegram_id == tg_id).all()):
         pl.name = req.name
-        pl.point = int(req.points)
-        pl.tg_id = tg_id
-        Persons.append(pl)
+        pl.points = int(req.points)
+        pl.tg_id = int(tg_id)
+        pl.username = req.username
     return pl

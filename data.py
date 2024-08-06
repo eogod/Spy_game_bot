@@ -18,24 +18,22 @@ class User(Base):
 
     def update_points(telegram_id, plus_points):
         points = session.query(User.points).filter(User.telegram_id == telegram_id).first()[0]
-        print(points)
         new_points = points + plus_points
         user = session.query(User).filter(User.telegram_id == telegram_id).first()
         user.points = new_points
         session.commit()
 
-
+# 23 таска, первое время
 class Task(Base):
     __tablename__ = 'tasks'
     id = Column(Integer, primary_key=True, index=True, nullable=False)
     normal_task = Column(Text, nullable=False)
     fake_task = Column(Text, nullable=False)
 
-    def get_tasks_by_id(task_id):
-        task = session.query(Task).filter(Task.id == task_id).first()
-        return task.normal_task, task.fake_task
-        task_id = 1  ## ну короче рандомно берем из количества всех. Всего тасков 23
-        normal_task, fake_task = get_tasks_by_id(task_id)
+    # filter(Task.id == task_id).first()
+    def get_tasks(self):
+        tasks = session.query(Task).all()
+        return tasks, len(tasks)
 
 
 class Player:
@@ -43,9 +41,10 @@ class Player:
         self.name = ''
         self.tg_id = 0
         self.points = 0
+        self.username = ''
         self.role = ''
         self.command_id = ''
-        # self.answer = answer
+        self.answer = ''
 
     def set_answer(self, answer):
         self.answer = answer
@@ -58,56 +57,58 @@ class Player:
 
 
 class Team:
-    def __init__(self, team_id, players):
-        self.id = team_id
-        self.players = []
+    def init(self, team_id: int, players: list[Player]):
+        self.id: int = team_id
+        self.players: list[Player] = players
+        self.task_for_civilian: String = ''
+        self.task_for_spy: String = ''
+        self.spy: list[int] = []
 
     def change_c_s(self):
-        numbers = [randint(0, len(self.players)) for i in range(2)]
+        self.spy = [randint(0, len(self.players)) for i in range(2)]
         for i in range(len(self.players)):
-            if i in numbers:
+            if i in self.spy:
                 self.players[i].set_role('spy')
             else:
-                self.players[i].set_role('civil')
+                self.players[i].set_role('civilian')
 
-    def voiting_results(self):
-        '''LOGIKA                                                                                                                                                                                                                                                                                                               Шпион который выиграл раунд = 100
-        Шпион который выиграл раунд = 100
-        Никого из шпионов не раскрыли = 150 каждому
-        Человек выбрал правильного шпиона(но команда нет) = 20
-        Команда правильно кикнула шпиона = всей команде 50 (кроме шпионов)
-        Команда правильно кикнула обеих шпионов = всей команде 100 (кроме шпионов)'''
-        spies_id = [spy.tg_id for spy in self.spies]
-
-        win_spies = copy.copy(spies_id)
-        correct_answers = 0
-        for player in self.civilians + self.spies:
-            if player.answer in spies_id:
-                player.points += 20
-                correct_answers += 1
-                if player.answer in win_spies:
-                    win_spies.remove(player.answer)
-
-        # Шпионам, кого не угадали начисляем 100
-        for spy in self.spies:
-            if spy.tg_id in win_spies:
-                spy.addPoint(100)
-
-        # Если не угадали обоих, то ещё 50 накидываем
-        if not correct_answers:
-            for spy in self.spies:
-                spy.addPoint(50)
-
-        if correct_answers >= 3 and len(win_spies) == 1:
-            for civilian in self.civilians:
-                civilian.addPoint(50)
-
-        elif correct_answers >= 3 and len(win_spies) == 0:
-            for civilian in self.civilians:
-                civilian.addPoint(100)
+    # def voiting_results(self):
+    #     '''LOGIKA                                                                                                                                                                                                                                                                                                               Шпион который выиграл раунд = 100
+    #     Шпион который выиграл раунд = 100
+    #     Никого из шпионов не раскрыли = 150 каждому
+    #     Человек выбрал правильного шпиона(но команда нет) = 20
+    #     Команда правильно кикнула шпиона = всей команде 50 (кроме шпионов)
+    #     Команда правильно кикнула обеих шпионов = всей команде 100 (кроме шпионов)'''
+    #     spies_id = [spy.tg_id for spy in self.spies]
+    #
+    #     win_spies = copy.copy(spies_id)
+    #     correct_answers = 0
+    #     for player in self.civilians + self.spies:
+    #         if player.answer in spies_id:
+    #             player.points += 20
+    #             correct_answers += 1
+    #             if player.answer in win_spies:
+    #                 win_spies.remove(player.answer)
+    #
+    #     # Шпионам, кого не угадали начисляем 100
+    #     for spy in self.spies:
+    #         if spy.tg_id in win_spies:
+    #             spy.addPoint(100)
+    #
+    #     # Если не угадали обоих, то ещё 50 накидываем
+    #     if not correct_answers:
+    #         for spy in self.spies:
+    #             spy.addPoint(50)
+    #
+    #     if correct_answers >= 3 and len(win_spies) == 1:
+    #         for civilian in self.civilians:
+    #             civilian.addPoint(50)
+    #
+    #     elif correct_answers >= 3 and len(win_spies) == 0:
+    #         for civilian in self.civilians:
+    #             civilian.addPoint(100)
 
 
 Base.metadata.create_all(engine)
 session = SessionLocal()
-
-session.close()
+results = session.query(User).all()

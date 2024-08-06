@@ -1,8 +1,11 @@
 import random
-from data import Team
-from bot import Persons, Teams, ready_counter
-import time
+from data import Team, Task
+from bot import Persons, Teams, rounds
+from time import sleep
+from threading import Thread
 
+
+#
 
 def get_teams():
     count = len(Persons)
@@ -15,30 +18,68 @@ def get_teams():
         Teams.append(TT)
     if ostatok != 0:
         for i in range(1, ostatok + 1):
-            Teams[i].append(Persons[-i])
+            Teams[i].players.append(Persons[-i])
     for i in Teams:
         i.change_c_s()
 
 
+def functions_for_start() -> list[list[str]]:
+    tasks, count_tasks = Task.get_tasks()
+    for team in Teams:
+        team.task_for_civilian = tasks[(team.id + rounds) % count_tasks].normal_task
+        team.task_for_civilian = tasks[(team.id + rounds) % count_tasks].fake_task
+    team_messages = []
+    for team in Teams:
+        team_messages.append(get_team_message(team))
+    return team_messages
+
+
+def get_team_message(team: Team) -> list[str]:
+    messages: list[str] = []
+    for i in len(team.players):
+        message = 'Ur role:\n' + team.players[i].role + '\nUr task:\n' + team.task_for_spy + '\nUr team:\n' + \
+                  ''.join(['@' + player.username + ' ' for player in team.players]) + '\nUr teammate:\n@'
+        if i in team.spy:
+            message += team.players[(i + 1) % len(team.spy)].username
+        messages.append(message)
+    return messages
+
+
+def spawn_treath_with_sleep():
+    sleep(60)
+
+
 def start_game():
-    game_counter = 1
-    time.sleep(20)
+    th = Thread(target=spawn_treath_with_sleep)
 
 
-def del_user_from_lobby(tg_id):
+def del_user_from_lobby(tg_id: int):
     for player in Persons:
         if player.tg_id == tg_id:
             Persons.remove(player)
             break
 
 
-def test_ready_counter(id):
-    if ready_counter[id] == len(Teams[id].players):
+def take_count_answer() -> list[bool]:
+    ready_counter = []
+    for team in Teams:
+        count = 0
+        for player in team.players:
+            if player.answer != '':
+                count += 1
+        ready_counter.append(test_ready_counter(count))
+    return ready_counter
+
+
+def test_ready_counter(id: int, count: int) -> bool:
+    if count[id] == len(Teams[id].players):
         return True
+    else:
+        return False
 
 
 def end_game():
-    game_counter = 0
+    ready_counter = take_count_answer()
     for i in range(len(ready_counter)):
-        if test_ready_counter(i):
+        if ready_counter[i]:
             pass
