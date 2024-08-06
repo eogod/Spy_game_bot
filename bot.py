@@ -1,17 +1,21 @@
-import telebot
+from telebot.async_telebot import AsyncTeleBot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from data import *
+import asyncio
 from config import load_config
 from data_exs import a
 import re
 from data import Player
 
-persons = []
-bot = telebot.TeleBot(load_config())
+Persons: list[Player] = []
+Teams: list[Team] = []
+game_counter = 0
+ready_counter: list[int] = []
+bot = AsyncTeleBot(load_config())
 
 # Define a command handler
 @bot.message_handler(commands=['start', 'help'])
-def send_welcome(message):
+async def send_welcome(message):
     button_successful_registration = InlineKeyboardMarkup(row_width=2)
     button_successful_registration.add(InlineKeyboardButton(text="Правила", callback_data='rules'),
                                        InlineKeyboardButton(text='Рейтинг', callback_data='rating'),
@@ -20,70 +24,69 @@ def send_welcome(message):
                                        )
     pl = from_bd(message)
     try:
-        bot.send_message(message.from_user.id,text=f"🖖 Здравствуй, {pl.name}\n\n⚜️ Количество баллов: {pl.points}", reply_markup=button_successful_registration)
+        await bot.send_message(message.from_user.id, text=f"🖖 Здравствуй, {pl.name}\n\n⚜️ Количество баллов: {pl.points}", reply_markup=button_successful_registration)
     except KeyError:
-        bot.send_message(message.from_user.id,text="Тебя нет в базе обратись к админу")
-
+        await bot.send_message(message.from_user.id, text="Тебя нет в базе, обратись к админу")
 
 
 @bot.message_handler(commands=['info'])
-def send_info(message):
-    bot.reply_to(message, "some text")
+async def send_info(message):
+    await bot.reply_to(message, "some text")
 
-
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 @bot.callback_query_handler(func=lambda call: True)
-def answer(call):
+async def answer(call):
     button_back = InlineKeyboardMarkup(row_width=2)
     button_back.add(InlineKeyboardButton(text="Назад", callback_data='start'))
+
     if call.data == 'join':
         button_join = InlineKeyboardMarkup(row_width=2)
         button_join.add(InlineKeyboardButton(text="Правила", callback_data='rules'),
                         InlineKeyboardButton(text="Назад", callback_data='start'))
 
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                              text=f"Подожди пока мы тебе найдем команду", reply_markup=button_join)
+        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                    text=f"Подожди пока мы тебе найдем команду", reply_markup=button_join)
+
     elif call.data == 'start':
-        for i in persons:
+        for i in Persons:
             if i.tg_id == call.from_user.id:
                 button_successful_registration = InlineKeyboardMarkup(row_width=2)
                 button_successful_registration.add(InlineKeyboardButton(text="Правила", callback_data='rules'),
                                                    InlineKeyboardButton(text='Рейтинг', callback_data='rating'),
-                                                   InlineKeyboardButton(text='Присоедиться', callback_data='join'), )
-                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f"🖖 Здравствуй, {i.name}⚜️ Количество баллов: {i.points}",
-                                 reply_markup=button_successful_registration)
-    elif call.data == 'rating':
-        # берем из базы даных рейтинг показываем рейтинг + кнопка back
-        rating = "1) Я"
+                                                   InlineKeyboardButton(text='Присоединиться', callback_data='join'))
+                await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                            text=f"🖖 Здравствуй, {i.name}\n⚜️ Количество баллов: {i.points}",
+                                            reply_markup=button_successful_registration)
 
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                 text=rating, reply_markup=button_back)
-    #elif call.data == 'start_game':
-        #функция для начала игры
+    elif call.data == 'rating':
+        # берем из базы данных рейтинг показываем рейтинг + кнопка back
+        rating = "1) Я"
+        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                    text=rating, reply_markup=button_back)
+
     elif call.data == 'rules':
         # пишем список правил + кнопка back
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                 text='rules',reply_markup=button_back)
+        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                    text='rules', reply_markup=button_back)
 
     elif call.data == 'team':
         # взять из базы данных список команды и кнопка back
         button_team = InlineKeyboardMarkup(row_width=2)
         button_team.add(InlineKeyboardButton(text="Ответить на вопрос", callback_data='answer'),
-                             InlineKeyboardButton(text='Выбрать шпиона', callback_data='choice'),
-                             InlineKeyboardButton(text="Назад", callback_data='back'))
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                 text='team',reply_markup=button_team)
+                        InlineKeyboardButton(text='Выбрать шпиона', callback_data='choice'),
+                        InlineKeyboardButton(text="Назад", callback_data='back'))
+        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                    text='team', reply_markup=button_team)
+
     elif call.data == "answer":
         # взять из базы вопросы и сделать 4 кнопки отправить их
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                              text='answer',reply_markup=button_back)
+        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                    text='answer', reply_markup=button_back)
+
     elif call.data == "choice":
         # взять из базы имена команды и выбрать двоих
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                              text='choice',reply_markup=button_back)
-
-
+        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                    text='choice', reply_markup=button_back)
 
 
 def from_bd(message):
@@ -93,5 +96,7 @@ def from_bd(message):
         pl.name = req.name
         pl.point = int(req.points)
         pl.tg_id = tg_id
-        persons.append(pl)
+        Persons.append(pl)
     return pl
+
+
