@@ -7,38 +7,85 @@ from data_exs import a
 bot = telebot.TeleBot(load_config())
 
 
-@bot.callback_query_handler(func=lambda call: True)
-def answer(call):
-    if call.data == 'join':
-        bot.send_message(call.message.chat.id, 'join')
-        # присоеденияется к игре + все кнопки показываем
-    elif call.data == 'rating':
-        # берем из базы даных рейтинг показываем рейтинг + кнопка back
-        bot.send_message(call.message.chat.id, 'rating')
-    elif call.data == 'ruls':
-        bot.send_message(call.message.chat.id, 'ruls')
-        # пишем список правил + кнопка back
-
 
 # Define a command handler
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
-    button_invite = InlineKeyboardMarkup(row_width=1)
-    button_invite.add(InlineKeyboardButton(text='Присоединиться', callback_data='join'),
-                      InlineKeyboardButton(text="Правила", callback_data='ruls'))
-    bot.send_message(message.from_user.id, " Привет, Твой рейтинг: 0 место", reply_markup=button_invite)
+    button_join = InlineKeyboardMarkup(row_width=1)
+    button_join.add(InlineKeyboardButton(text='Присоединиться', callback_data='join'))
+    bot.send_message(message.from_user.id, "Готов испыать себя?", reply_markup=button_join)
 
-    button_1 = InlineKeyboardMarkup(row_width=1)
-    button_1.add(InlineKeyboardButton(text="Правила", callback_data='ruls'),
-                 InlineKeyboardButton(text='rating', callback_data='rating'))
-    try:
-        user_name = a[message.from_user.id]
-        bot.send_message(message.from_user.id, f"Привет {user_name}", reply_markup=button_1)
-    except KeyError:
-        print(message.from_user.id)
-        bot.send_message(message.from_user.id, f"Тебя нет в базе лох", )
+
+
 
 
 @bot.message_handler(commands=['info'])
 def send_info(message):
     bot.reply_to(message, "some text")
+
+
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+
+@bot.callback_query_handler(func=lambda call: True)
+def answer(call):
+    button_back = InlineKeyboardMarkup(row_width=2)
+    button_back.add(InlineKeyboardButton(text="Назад", callback_data='back'))
+    if call.data == 'join':
+        button_successful_registration = InlineKeyboardMarkup(row_width=2)
+        button_successful_registration.add(InlineKeyboardButton(text="Правила", callback_data='rules'),
+                     InlineKeyboardButton(text='Рейтинг', callback_data='rating'), InlineKeyboardButton(text='Моя команда', callback_data='team'))
+        button_unsuccessful_registration = InlineKeyboardMarkup(row_width=1)
+        button_unsuccessful_registration.add(InlineKeyboardButton(text="Назад", callback_data='unback'))
+
+        try:
+            user_name = a[call.message.chat.id]
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                 text=f"Привет {user_name}", reply_markup=button_successful_registration)
+        except KeyError:
+            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                 text="Тебя нет в базе, лох", reply_markup=button_unsuccessful_registration)
+
+
+    elif call.data == 'rating':
+        # берем из базы даных рейтинг показываем рейтинг + кнопка back
+        rating = "1) Я"
+
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                 text=rating, reply_markup=button_back)
+    elif call.data == 'rules':
+        # пишем список правил + кнопка back
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                 text='rules',reply_markup=button_back)
+
+    elif call.data == 'back':
+        # функция с "начальным меню"
+        button_afterback = InlineKeyboardMarkup(row_width=2)
+        button_afterback.add(InlineKeyboardButton(text="Правила", callback_data='rules'),
+                        InlineKeyboardButton(text='Рейтинг', callback_data='rating'),
+                        InlineKeyboardButton(text='Моя команда', callback_data='team'))
+
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                              text='Начальное меню', reply_markup=button_afterback)
+
+    elif call.data == 'team':
+        # взять из базы данных список команды и кнопка back
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                 text='team',reply_markup=button_back)
+    elif call.data == "answer":
+        # взять из базы вопросы и сделать 4 кнопки отправить их
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                              text='answer',reply_markup=button_back)
+    elif call.data == "choice":
+        # взять из базы имена команды и выбрать двоих
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                              text='choice',reply_markup=button_back)
+    elif call.data == "unback":
+
+        # кнопка назад при неудачной регестрации
+        button_join = InlineKeyboardMarkup(row_width=1)
+        button_join.add(InlineKeyboardButton(text='Присоединиться', callback_data='join'))
+        bot.send_message(call.message.from_user.id, "Готов испыать себя?", reply_markup=button_join)
+
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                              text='Готов испытать себя?', reply_markup=button_join)
+
