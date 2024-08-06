@@ -1,7 +1,6 @@
 import random
-from storage import Storage
 from data import Team
-from bot import Persons, Teams, ready_counter, game_counter
+from bot import Persons, Teams, ready_counter
 import time
 
 

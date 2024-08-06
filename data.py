@@ -1,16 +1,14 @@
 from sqlalchemy import create_engine, Column, Integer, String, Enum, Text
 from sqlalchemy.orm import sessionmaker, declarative_base
 from config import load_database
-import psycopg2
 from random import randint
-import asyncio
 import copy
-
 
 engine = create_engine(load_database())
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-tele_id = 1093476166 ### потом поменяешь короче на зпрошенный айди
 Base = declarative_base()
+
+
 class User(Base):
     __tablename__ = "users_from_bot"
     telegram_id = Column(Integer, primary_key=True, index=True, unique=True)
@@ -19,7 +17,9 @@ class User(Base):
     points = Column(Integer, nullable=False, default=0)
 
     def update_points(telegram_id, plus_points):
-        new_points = result.points + plus_points
+        points = session.query(User.points).filter(User.telegram_id == telegram_id).first()[0]
+        print(points)
+        new_points = points + plus_points
         user = session.query(User).filter(User.telegram_id == telegram_id).first()
         user.points = new_points
         session.commit()
@@ -30,11 +30,13 @@ class Task(Base):
     id = Column(Integer, primary_key=True, index=True, nullable=False)
     normal_task = Column(Text, nullable=False)
     fake_task = Column(Text, nullable=False)
+
     def get_tasks_by_id(task_id):
         task = session.query(Task).filter(Task.id == task_id).first()
         return task.normal_task, task.fake_task
-        task_id = 1 ## ну короче рандомно берем из количества всех. Всего тасков 23
+        task_id = 1  ## ну короче рандомно берем из количества всех. Всего тасков 23
         normal_task, fake_task = get_tasks_by_id(task_id)
+
 
 class Player:
     def __init__(self):
@@ -58,8 +60,7 @@ class Player:
 class Team:
     def __init__(self, team_id, players):
         self.id = team_id
-        self.spies = []
-        self.civilians = []
+        self.players = []
 
     def change_c_s(self):
         numbers = [randint(0, len(self.players)) for i in range(2)]
@@ -108,15 +109,5 @@ class Team:
 
 Base.metadata.create_all(engine)
 session = SessionLocal()
-results = session.query(User).all()
-
-
-
-for result in results:
-    print(f"""
-          Telegram_ID: {result.telegram_id}
-          Name: {result.name}
-          points: {result.points}
-    """)
 
 session.close()
