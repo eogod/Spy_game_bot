@@ -3,7 +3,6 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import asyncio
 from data import *
 from config import load_config
-from data_exs import a
 import re
 from data import Player
 

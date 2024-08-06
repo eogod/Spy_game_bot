@@ -1,5 +1,4 @@
 import random
-from storage import Storage
 from data import Player, Team
 from bot import Persons
 
