@@ -20,7 +20,7 @@ def send_welcome(message):
                                        )
     pl = from_bd(message)
     try:
-        bot.send_message(message.from_user.id,text=f"🖖 Здравствуй, {pl.name}⚜️ Количество баллов: {pl.points}", reply_markup=button_successful_registration)
+        bot.send_message(message.from_user.id,text=f"🖖 Здравствуй, {pl.name}\n\n⚜️ Количество баллов: {pl.points}", reply_markup=button_successful_registration)
     except KeyError:
         bot.send_message(message.from_user.id,text="Тебя нет в базе обратись к админу")
 
@@ -46,12 +46,12 @@ def answer(call):
                               text=f"Подожди пока мы тебе найдем команду", reply_markup=button_join)
     elif call.data == 'start':
         for i in persons:
-            if i.id == call.user.id:
+            if i.tg_id == call.from_user.id:
                 button_successful_registration = InlineKeyboardMarkup(row_width=2)
                 button_successful_registration.add(InlineKeyboardButton(text="Правила", callback_data='rules'),
                                                    InlineKeyboardButton(text='Рейтинг', callback_data='rating'),
-                                                   InlineKeyboardButton(text='Команда', callback_data='join'))
-                bot.send_message(call.from_user.id, text=f"🖖 Здравствуй, {i.name}⚜️ Количество баллов: {i.points}",
+                                                   InlineKeyboardButton(text='Присоедиться', callback_data='join'), )
+                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text=f"🖖 Здравствуй, {i.name}⚜️ Количество баллов: {i.points}",
                                  reply_markup=button_successful_registration)
     elif call.data == 'rating':
         # берем из базы даных рейтинг показываем рейтинг + кнопка back
