@@ -1,6 +1,7 @@
 from bot import *
 import logging
 from data import *
+import asyncio
 
 class Command:
     help = 'Run bot locally.'
@@ -12,7 +13,7 @@ class Command:
 
     def handle(self, *args, **options):
         self.logger.info('Starting local bot...')
-        bot.polling(none_stop=True)
+        asyncio.run(bot.polling())
 
 
 if __name__ == "__main__":
