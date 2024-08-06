@@ -13,5 +13,3 @@ def send_welcome(message):
 @bot.message_handler(commands=['info'])
 def send_info(message):
     bot.reply_to(message, "some text")
-
-

@@ -1,10 +1,12 @@
 from bot import *
 import logging
+from data import *
 
 class Command:
     help = 'Run bot locally.'
 
     def __init__(self):
+        Base.metadata.create_all(engine)
         self.logger = logging.getLogger(__name__)
         logging.basicConfig(level=logging.INFO)
 
