@@ -83,8 +83,13 @@ async def answer(call):
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                     text='team', reply_markup=button_team)
     elif call.data == 'team_list':
+        team = get_team(call.from_user.id)
         button_team_list = InlineKeyboardMarkup(row_width=2)
-        button_team_list.add(InlineKeyboardButton(text='Назад', callback_data='team'))
+        button_team_list.add(InlineKeyboardButton(text=team[0].name, callback_data=str(team[0].tg_id)),
+                            InlineKeyboardButton(text=team[1].name, callback_data=team[1].tg_id),
+                            InlineKeyboardButton(text=team[2].name, callback_data=team[2].tg_id),
+                            InlineKeyboardButton(text=team[3].name, callback_data=team[3].tg_id),
+                            InlineKeyboardButton(text=team[4].name, callback_data=team[4].tg_id))
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
                                     text='team_list', reply_markup=button_team_list)
     elif call.data == "answer1":
@@ -116,3 +121,13 @@ def from_bd(id):
         pl.username = req.username
         Persons_welcom.append(pl)
     return pl
+
+def get_team(tg_id: int):
+    for team in Teams:
+        for player in team.players:
+            if player.tg_id == tg_id:
+                mas = []
+                for us in team.players:
+                    if us.tg_id != tg_id:
+                        mas.append(us)
+                return mas
