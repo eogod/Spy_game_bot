@@ -6,7 +6,7 @@ from threading import Thread
 
 
 
-def get_teams():
+def get_teams() -> None:
     count = len(Persons)
     ostatok = count % 6
     count = [i for i in range(count)]
@@ -23,6 +23,7 @@ def get_teams():
 
 
 def functions_for_start() -> list[list[str]]:
+    get_teams()
     tasks, count_tasks = Task.get_tasks()
     for team in Teams:
         team.task_for_civilian = tasks[(team.id + rounds) % count_tasks].normal_task
@@ -44,41 +45,28 @@ def get_team_message(team: Team) -> list[str]:
     return messages
 
 
-def spawn_treath_with_sleep():
+def spawn_treath_with_sleep() -> None:
     sleep(60)
 
 
-def start_game():
+def start_game() -> None:
     th = Thread(target=spawn_treath_with_sleep)
     th.start()
 
 
-def del_user_from_lobby(tg_id: int):
+def del_user_from_lobby(tg_id: int) -> None:
     for player in Persons:
         if player.tg_id == tg_id:
             Persons.remove(player)
             break
 
-def test_ready_counters():
-    for (i,team) in zip(ready_counter,Teams):
-        if i == len(team.players):
-            return [player.name for player in team]
 
-
-def set_answer_pers(tg_id: int, answer: str):
+def set_answer_pers(tg_id: int, answer: str) -> None:
     for team in Teams:
         for pers in team.players:
             if tg_id == pers.tg_id:
                 pers.answers.append(answer)
 
-
-def plus_one(tg_id: int):
-    ready_counter = [0 for _ in range(len(Teams))]
-    for team in Teams:
-        for pers in team.players:
-            if tg_id == pers.tg_id:
-                ready_counter[team.id-1]+=1
-    test_ready_counters()
             
 
 def take_count_answer() -> list[bool]:
@@ -99,7 +87,7 @@ def test_ready_counter(id: int, count: int) -> bool:
         return False
 
 
-def end_game():
+def end_game() -> None:
     ready_counter = take_count_answer()
     for i in range(len(ready_counter)):
         if ready_counter[i]:
