@@ -60,7 +60,7 @@ async def answer(call):
                                                    InlineKeyboardButton(text='Присоедиться к лоби',
                                                                         callback_data='join'), )
                 await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                            text=f"🖖 Здравствуй, {i.name}⚜️ Количество баллов: {i.points}",
+                                            text=f"🖖 Здравствуй, {i.name}\n\n⚜️ Количество баллов: {i.points}",
                                             reply_markup=button_successful_registration)
     elif call.data == 'rating':
         rating = "1) Я"
