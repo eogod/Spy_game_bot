@@ -44,6 +44,7 @@ class Player:
         self.username = ''
         self.role = ''
         self.answers: list[str] = ''
+        self.callerid = 0
 
     def set_answer(self, answer):
         self.answer = answer

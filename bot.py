@@ -3,9 +3,10 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 from data import *
 from config import load_config
 from data import Player
+from text_bot import rules_text, message_1, message_2
 
 
-f = 0
+f = 1
 
 Persons: list[Player] = []
 Persons_welcom: list[Player] = []
@@ -19,21 +20,18 @@ bot = AsyncTeleBot(load_config())
 @bot.message_handler(commands=['start', 'help'])
 async def send_welcome(message):
     button_successful_registration = InlineKeyboardMarkup(row_width=2)
-    button_successful_registration.add(InlineKeyboardButton(text="Правила", callback_data='rules'),
-                                       InlineKeyboardButton(text='Рейтинг', callback_data='rating'),
-                                       InlineKeyboardButton(text='Присоедиться к лоби', callback_data='join'))
+    button_successful_registration.add(InlineKeyboardButton(text="Правила📋", callback_data='rules'),
+                                       InlineKeyboardButton(text='Рейтинг📈', callback_data='rating'),
+                                       InlineKeyboardButton(text='Присоединиться к лобби🙂', callback_data='join'))
     pl = from_bd(message.from_user.id)
     try:
         await  bot.send_message(message.from_user.id,
                                 text=f"🖖 Здравствуй, {pl.name}\n\n⚜️ Количество баллов: {pl.points}",
                                 reply_markup=button_successful_registration)
     except KeyError:
-        await bot.send_message(message.from_user.id, text="Тебя нет в базе обратись к админу")
+        await bot.send_message(message.from_user.id, text="Тебя нет в базе, иди к админу")
 
 
-@bot.message_handler(commands=['info'])
-def send_info(message):
-    bot.reply_to(message, "some text")
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -42,16 +40,16 @@ async def answer(call):
         Persons.append(from_bd(call.from_user.id))
         if f==1:
             button_join = InlineKeyboardMarkup(row_width=2)
-            button_join.add(InlineKeyboardButton(text="Обновить", callback_data='join'),
-                            InlineKeyboardButton(text="Назад", callback_data='main'))
+            button_join.add(InlineKeyboardButton(text="Обновить🔄", callback_data='team'),
+                            InlineKeyboardButton(text="Назад⬅️", callback_data='main'))
             await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                        text=f"Подожди пока мы тебе найдем команду", reply_markup=button_join)
+                                        text=f"Подожди пока мы тебе найдем команду🕑", reply_markup=button_join)
         else:
             button_join = InlineKeyboardMarkup(row_width=1)
-            button_join.add(InlineKeyboardButton(text="Твоя карточка", callback_data='team'),
+            button_join.add(InlineKeyboardButton(text="Твоя карточка🔖", callback_data='team'),
                             InlineKeyboardButton(text="Назад", callback_data='main'))
             await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                        text=f"Команада нашлась!", reply_markup=button_join)
+                                        text=f"Команда нашлась!🎉!", reply_markup=button_join)
 
     elif call.data == 'main':
         for i in Persons_welcom:
@@ -74,41 +72,48 @@ async def answer(call):
         button_rules = InlineKeyboardMarkup(row_width=2)
         button_rules.add(InlineKeyboardButton(text="Назад", callback_data='main'))
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                    text='rules', reply_markup=button_rules)
+                                    text=rules_text, reply_markup=button_rules)
 
     elif call.data == 'team':
         button_team = InlineKeyboardMarkup(row_width=2)
-        button_team.add(InlineKeyboardButton(text='Список участников лоби', callback_data='team_list'),
-                        InlineKeyboardButton(text="Сбор", callback_data='answer1'))
+        button_team.add(InlineKeyboardButton(text='Список участников лобби👨‍👨‍👦‍👦', callback_data='team_list'),
+                        InlineKeyboardButton(text="Сбор", callback_data='answer1'),)
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                    text='team', reply_markup=button_team)
+                                    text=message_1, reply_markup=button_team)
     elif call.data == 'team_list':
+        button_team_list = InlineKeyboardMarkup(row_width=2)
+        button_team_list.add(InlineKeyboardButton(text='Назад', callback_data='team') )
+        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                 text=message_2, reply_markup=button_team_list)
+
+
+    elif call.data == "answer1":
         team = get_team(call.from_user.id)
         button_team_list = InlineKeyboardMarkup(row_width=2)
-        button_team_list.add(InlineKeyboardButton(text=team[0].name, callback_data=str(team[0].tg_id)),
-                            InlineKeyboardButton(text=team[1].name, callback_data=team[1].tg_id),
-                            InlineKeyboardButton(text=team[2].name, callback_data=team[2].tg_id),
-                            InlineKeyboardButton(text=team[3].name, callback_data=team[3].tg_id),
-                            InlineKeyboardButton(text=team[4].name, callback_data=team[4].tg_id))
+        button_team_list.add(InlineKeyboardButton(text="@Murkysik", callback_data = 'answer2'),
+                             InlineKeyboardButton(text="@eogod", callback_data = 'answer2'),
+                             InlineKeyboardButton(text="@IAJlekcaHDpI", callback_data='answer2'),
+                             InlineKeyboardButton(text="@Bbggleave", callback_data='answer2'),
+                             InlineKeyboardButton(text="@Ezhidze25", callback_data='answer2'))
+
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                    text='team_list', reply_markup=button_team_list)
-    elif call.data == "answer1":
-        button_back = InlineKeyboardMarkup(row_width=1)
-        button_back.add(InlineKeyboardButton(text="sdf", callback_data='answer2'))
-        await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                    text='answer1', reply_markup=button_back)
+                                 text='Тебе нужно выбрать первого шпиона!', reply_markup=button_team_list)
+
     elif call.data == "answer2":
-        button_back = InlineKeyboardMarkup(row_width=1)
-        button_back.add(InlineKeyboardButton(text="sdgsdfgfgh", callback_data='round_res'))
+        button_team_list = InlineKeyboardMarkup(row_width=2)
+        button_team_list.add(InlineKeyboardButton(text="@Murkysik", callback_data='round_res'),
+                             InlineKeyboardButton(text="@eogod", callback_data='round_res'),
+                             InlineKeyboardButton(text="@IAJlekcaHDpI", callback_data='round_res'),
+                             InlineKeyboardButton(text="@Bbggleave", callback_data='round_res'),
+                             InlineKeyboardButton(text="@Ezhidze25", callback_data='round_res'))
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                    text='answer2', reply_markup=button_back)
+                                text='Тебе нужно выбрать второго шпиона!', reply_markup=button_team_list)
 
     elif call.data == "round_res":
-
         button_back = InlineKeyboardMarkup(row_width=1)
-        button_back.add(InlineKeyboardButton(text="В поиск лоби", callback_data='team'))
+        button_back.add(InlineKeyboardButton(text="В поиск лобби♿️", callback_data='team'))
         await bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                    text='round_res', reply_markup=button_back)
+                                    text='Результаты тура', reply_markup=button_back)
 
 
 def from_bd(id):
@@ -131,3 +136,5 @@ def get_team(tg_id: int):
                     if us.tg_id != tg_id:
                         mas.append(us)
                 return mas
+
+
